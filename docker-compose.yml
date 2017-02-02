@@ -1,0 +1,44 @@
+version: "2"
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "88:80"
+    volumes:
+      - /var/www/docker/gateway:/var/www/gateway
+      - /var/www/docker/helpdesk:/var/www/helpdesk
+      - /var/www/docker/api_hd:/var/www/api_hd
+      - ./docker_sockets:/run/docker_sockets
+  php:
+    build: ./php
+    volumes:
+      - /var/www/docker/gateway:/var/www/gateway
+      - /var/www/docker/helpdesk:/var/www/helpdesk
+      - ./docker_sockets:/run/docker_sockets
+    links:
+      - db
+      - redis
+  ruby:
+    build: ./ruby
+    volumes:
+      - /var/www/docker/api_hd:/var/www/api_hd
+      - ./docker_sockets:/run/docker_sockets
+    links:
+      - db
+      - redis
+  db:
+    build: ./db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: foR1980
+      MYSQL_DATABASE: helpdesk
+    volumes:
+      - db:/var/lib/mysql
+      - ./docker_sockets:/run/docker_sockets
+  redis:
+    image: redis:3.2
+    ports:
+      - "6379:6379"
+volumes:
+  db:
